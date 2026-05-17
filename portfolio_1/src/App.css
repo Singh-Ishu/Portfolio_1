@@ -1,0 +1,18 @@
+html,
+body,
+#root {
+  width: 100%;
+  height: 100%;
+}
+
+body {
+  overflow: hidden;
+  background:
+    radial-gradient(circle at top, rgba(56, 189, 248, 0.16), transparent 35%),
+    linear-gradient(180deg, #020617 0%, #0f172a 55%, #111827 100%);
+}
+
+.scene-shell {
+  width: 100vw;
+  height: 100vh;
+}
