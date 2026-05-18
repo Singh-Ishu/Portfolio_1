@@ -103,7 +103,7 @@ models.forEach((model) => {
 export default function Scene() {
   return (
     <div className="scene-shell">
-      <Canvas camera={{ position: [0.763, 1.402, 1.981], fov: 25 }}>
+      <Canvas camera={{ position: [0.34821, 0.80187, 1.6626], fov: 35 }}>
         <color attach="background" args={["#000000"]} />
         <ambientLight intensity={0} />
         <SpotLight />
