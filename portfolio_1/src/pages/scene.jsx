@@ -1,7 +1,9 @@
-import { Canvas, useFrame, useThree } from "@react-three/fiber"
-import { OrbitControls, useGLTF } from "@react-three/drei"
+import { Canvas, useFrame } from "@react-three/fiber"
+import { useGLTF } from "@react-three/drei"
 import { Suspense, useEffect, useRef } from "react"
-import { DoubleSide } from "three"
+import { Box3, DoubleSide, Vector3 } from "three"
+
+const modelCenters = new Map()
 
 const models = [
   { path: "/book1.glb" },
@@ -19,34 +21,54 @@ const models = [
 
 function Model({ path }) {
   const { scene } = useGLTF(path)
+  const groupRef = useRef()
 
-  return <primitive object={scene} />
+  useEffect(() => {
+    const box = new Box3().setFromObject(scene)
+    const center = box.getCenter(new Vector3())
+
+    modelCenters.set(path, center)
+
+    if (path !== "/head.glb") return
+
+    scene.position.sub(center)
+  }, [path, scene])
+
+  useFrame(({ clock }) => {
+    if (path !== "/head.glb" || !groupRef.current) return
+
+    const t = clock.getElapsedTime()
+    const bob = Math.sin(t * 1.2) * 0.01
+    const hologramCenter = modelCenters.get("/hologram.glb")
+
+    if (hologramCenter) {
+      groupRef.current.position.set(
+        hologramCenter.x,
+        hologramCenter.y + 0.15 + bob,
+        hologramCenter.z,
+      )
+    } else {
+      groupRef.current.position.y = 0.15 + bob
+    }
+
+    groupRef.current.rotation.y = (t * 0.7) % (Math.PI * 2)
+    groupRef.current.rotation.x = Math.sin(t * 0.9) * 0.06
+  })
+
+  return (
+    <group ref={groupRef}>
+      <primitive object={scene} />
+    </group>
+  )
 }
 
 function SpotLight() {
   const lightRef = useRef()
-  const flickerTimeout = useRef()
-
-  const scheduleFlicker = () => {
-    if (!lightRef.current) return
-
-    const baseIntensity = 180
-    const intensityVariation = Math.random() < 0.25
-      ? -Math.random() * 140
-      : Math.random() * 30 - 10
-
-    lightRef.current.intensity = Math.max(0, baseIntensity + intensityVariation)
-    const nextDelay = 50 + Math.random() * 450
-    flickerTimeout.current = window.setTimeout(scheduleFlicker, nextDelay)
-  }
 
   useEffect(() => {
     if (!lightRef.current) return
     lightRef.current.target.position.set(0, 0, 0)
     lightRef.current.target.updateMatrixWorld()
-    scheduleFlicker()
-
-    return () => window.clearTimeout(flickerTimeout.current)
   }, [])
 
   return (
@@ -72,17 +94,6 @@ function SpotLight() {
       </mesh>
     </>
   )
-}
-
-function CameraLogger() {
-  const { camera } = useThree()
-
-  useFrame(() => {
-    const { x, y, z } = camera.position
-    console.log(`Camera position: x=${x.toFixed(3)}, y=${y.toFixed(3)}, z=${z.toFixed(3)}`)
-  })
-
-  return null
 }
 
 models.forEach((model) => {
