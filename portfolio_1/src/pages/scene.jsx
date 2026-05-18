@@ -4,12 +4,17 @@ import { Suspense, useEffect, useRef } from "react"
 import { DoubleSide } from "three"
 
 const models = [
+  { path: "/book1.glb" },
+  { path: "/book2.glb" },
+  { path: "/book3.glb" },
   { path: "/certificate.glb" },
+  { path: "/head.glb" },
+  { path: "/hologram.glb" },
+  { path: "/pendulum.glb" },
   { path: "/phone.glb" },
   { path: "/phone_cable.glb" },
   { path: "/resume.glb" },
   { path: "/table.glb" },
-  { path: "/pendulum.glb" },
 ]
 
 function Model({ path }) {
@@ -96,7 +101,7 @@ export default function Scene() {
             <Model key={model.path} {...model} />
           ))}
         </Suspense>
-        
+
       </Canvas>
     </div>
   )
