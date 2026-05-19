@@ -83,14 +83,14 @@ export default function Scene() {
 
     // 3. Vignette -> VignetteShader
     const vignettePass = new ShaderPass(VignetteShader)
-    vignettePass.uniforms['offset'].value = 1.0
-    vignettePass.uniforms['darkness'].value = 1.2
+    // vignettePass.uniforms['offset'].value = 0.5
+    vignettePass.uniforms['darkness'].value = 0.8
     composer.addPass(vignettePass)
 
     // Controls
     const controls = new OrbitControls(camera, renderer.domElement)
     controls.enableDamping = true
-    controls.enablePan = true
+    controls.enablePan = false
     controls.target.set(0, 0, 0)
     controls.update()
 
