@@ -6,15 +6,15 @@ import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js'
 
 const MODEL_URLS = [
   '/table.glb',
-  // '/book1.glb',
-  // '/book2.glb',
-  // '/book3.glb',
-  // '/resume.glb',
+  '/book1.glb',
+  '/book2.glb',
+  '/book3.glb',
+  '/resume.glb',
   '/certificate.glb',
   '/phone.glb',
-  // '/hologram_base.glb',
-  // '/pendulum.glb',
-  // '/hologram_head.glb',
+  '/hologram_base.glb',
+  '/pendulum.glb',
+  '/head.glb',
 ]
 
 export default function Scene() {
@@ -112,7 +112,7 @@ export default function Scene() {
               node.receiveShadow = false
 
               const processMaterial = (mat) => {
-                if (url.includes('hologram_head')) {
+                if (url.includes('head')) {
                   return new THREE.MeshStandardMaterial({
                     color: 0x4488ff,
                     emissive: 0x1144ff,
