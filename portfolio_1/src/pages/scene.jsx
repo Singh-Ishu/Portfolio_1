@@ -131,6 +131,50 @@ export default function Scene() {
       composer.render() 
     }
 
+    const raycaster = new THREE.Raycaster()
+    const pointer = new THREE.Vector2()
+    const hoverGroups = new Map()
+
+    const getHoverEntry = (object) => {
+      let current = object
+      while (current) {
+        if (current.userData?.hoverEntry) {
+          return current.userData.hoverEntry
+        }
+        current = current.parent
+      }
+      return null
+    }
+
+    const registerHoverObject = (object, groupKey) => {
+      const entry = {
+        object,
+        groupKey,
+        basePosition: object.position.clone(),
+        baseScale: object.scale.clone(),
+        currentHover: 0,
+      }
+
+      object.userData.hoverEntry = entry
+      object.userData.hoverGroupKey = groupKey
+
+      if (!hoverGroups.has(groupKey)) {
+        hoverGroups.set(groupKey, {
+          entries: [],
+          targetHover: 0,
+        })
+      }
+
+      hoverGroups.get(groupKey).entries.push(entry)
+      return entry
+    }
+
+    const setHoveredGroup = (groupKey) => {
+      hoverGroups.forEach((group, key) => {
+        group.targetHover = key === groupKey ? 1 : 0
+      })
+    }
+
     let headModel = null
     let headWrapper = null
 
@@ -207,8 +251,17 @@ export default function Scene() {
               headModel = headWrapper
               headModel.position.x -= 0.02
               scene.add(headWrapper)
+              registerHoverObject(headWrapper, 'head-hologram')
+            } else if (url.includes('table')) {
+              scene.add(model)
             } else {
               scene.add(model)
+              const hoverGroupKey = url.includes('book')
+                ? 'books'
+                : url.includes('hologram_base')
+                  ? 'head-hologram'
+                  : url
+              registerHoverObject(model, hoverGroupKey)
             }
             render()
             resolve(model)
@@ -222,8 +275,50 @@ export default function Scene() {
       console.error('Failed to load one or more GLB models:', error)
     })
 
+    const onPointerMove = (event) => {
+      const rect = renderer.domElement.getBoundingClientRect()
+      pointer.x = ((event.clientX - rect.left) / rect.width) * 2 - 1
+      pointer.y = -(((event.clientY - rect.top) / rect.height) * 2 - 1)
+
+      raycaster.setFromCamera(pointer, camera)
+
+      const candidates = []
+      hoverGroups.forEach((group) => {
+        group.entries.forEach((entry) => {
+          candidates.push(entry.object)
+        })
+      })
+
+      const intersections = raycaster.intersectObjects(candidates, true)
+      const hitEntry = intersections.length > 0 ? getHoverEntry(intersections[0].object) : null
+
+      setHoveredGroup(hitEntry ? hitEntry.groupKey : null)
+      renderer.domElement.style.cursor = hitEntry ? 'pointer' : 'default'
+    }
+
+    const onPointerLeave = () => {
+      setHoveredGroup(null)
+      renderer.domElement.style.cursor = 'default'
+    }
+
+    renderer.domElement.addEventListener('pointermove', onPointerMove)
+    renderer.domElement.addEventListener('pointerleave', onPointerLeave)
+
     const animate = () => {
       controls.update()
+      hoverGroups.forEach((group) => {
+        group.entries.forEach((entry) => {
+          entry.currentHover += (group.targetHover - entry.currentHover) * 0.12
+          entry.object.position.x = entry.basePosition.x
+          entry.object.position.y = entry.basePosition.y + entry.currentHover * 0.025
+          entry.object.position.z = entry.basePosition.z
+          entry.object.scale.set(
+            entry.baseScale.x * (1 + entry.currentHover * 0.04),
+            entry.baseScale.y * (1 + entry.currentHover * 0.04),
+            entry.baseScale.z * (1 + entry.currentHover * 0.04),
+          )
+        })
+      })
       if(headModel){
         headModel.rotateY(0.02)
       }
@@ -248,6 +343,8 @@ export default function Scene() {
 
     return () => {
       cancelled = true
+      renderer.domElement.removeEventListener('pointermove', onPointerMove)
+      renderer.domElement.removeEventListener('pointerleave', onPointerLeave)
       resizeObserver?.disconnect()
       controls.dispose()
       dracoLoader.dispose()
