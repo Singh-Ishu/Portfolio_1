@@ -1,7 +1,6 @@
-import "./App.css"
 import Scene from "./pages/scene.jsx"
 
-function App(){
+function App() {
   return <Scene />
 }
 
