@@ -5,16 +5,15 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
 import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js'
 
 const MODEL_URLS = [
-  // '/table.glb',
+  '/table.glb',
   // '/book1.glb',
   // '/book2.glb',
   // '/book3.glb',
   // '/resume.glb',
   '/certificate.glb',
-  // '/phone.glb',
-  // '/phone_cable.glb',
+  '/phone.glb',
   // '/hologram_base.glb',
-  '/pendulum.glb',
+  // '/pendulum.glb',
   // '/hologram_head.glb',
 ]
 
@@ -49,7 +48,9 @@ export default function Scene() {
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
     renderer.setSize(mount.clientWidth, mount.clientHeight)
     renderer.outputColorSpace = THREE.SRGBColorSpace
-    renderer.toneMapping = THREE.NoToneMapping
+    
+    // FIXED: Match Blender's filmic color management
+    renderer.toneMapping = THREE.ACESFilmicToneMapping
     renderer.toneMappingExposure = 1
     renderer.shadowMap.enabled = false
     mount.appendChild(renderer.domElement)
@@ -63,21 +64,19 @@ export default function Scene() {
     const root = new THREE.Group()
     scene.add(root)
 
-    // Remove ambient light at 0.5, add proper lighting
-    const ambient = new THREE.AmbientLight('#1a1a1a', 0.3) // dark ambient
+    // Lights kept for the unbaked hologram_head. 
+    // MeshBasicMaterial (the baked models) will simply ignore these.
+    const ambient = new THREE.AmbientLight('#1a1a1a', 0.3) 
     scene.add(ambient)
 
-    // Main key light (from upper left in your Blender scene)
     const keyLight = new THREE.DirectionalLight('#ffe8d0', 1.2)
     keyLight.position.set(-5, 8, 5)
     scene.add(keyLight)
 
-    // Fill light (softer, from right)
     const fillLight = new THREE.DirectionalLight('#b8c8ff', 0.4)
     fillLight.position.set(5, 3, 2)
     scene.add(fillLight)
 
-    // Rim light (back right)
     const rimLight = new THREE.DirectionalLight('#ffd9b0', 0.6)
     rimLight.position.set(3, 5, -4)
     scene.add(rimLight)
@@ -105,7 +104,6 @@ export default function Scene() {
             }
 
             const model = gltf.scene
-            const isTable = url.includes('table')
             
             model.traverse((node) => {
               if (!node.isMesh) return
@@ -113,56 +111,43 @@ export default function Scene() {
               node.castShadow = false
               node.receiveShadow = false
 
-              if (!isTable) {
-                const processMaterial = (mat) => {
-                  if (url.includes('hologram_head')) {
-                    // Custom hologram material to hide baking/compression artifacts
-                    return new THREE.MeshStandardMaterial({
-                      color: 0x4488ff,
-                      emissive: 0x1144ff,
-                      emissiveIntensity: 0.5,
-                      transparent: true,
-                      opacity: 0.75,
-                      roughness: 0.2,
-                      metalness: 0.2,
-                      side: THREE.DoubleSide,
-                      blending: THREE.AdditiveBlending,
-                      depthWrite: false
-                    })
-                  }
-
-                  const texture = mat.emissiveMap || mat.map
-                  if (texture) {
-                    texture.colorSpace = THREE.SRGBColorSpace
-                    return new THREE.MeshBasicMaterial({
-                      map: texture,
-                      side: THREE.DoubleSide,
-                      transparent: mat.transparent || false,
-                      opacity: mat.opacity !== undefined ? mat.opacity : 1,
-                      alphaTest: mat.alphaTest || 0
-                    })
-                  }
-                  
-                  // Fallback to original material if no baked texture
-                  mat.side = THREE.DoubleSide
-                  return mat
-                }
-
-                if (Array.isArray(node.material)) {
-                  node.material = node.material.map(processMaterial)
-                } else if (node.material) {
-                  node.material = processMaterial(node.material)
-                }
-              } else {
-                if (Array.isArray(node.material)) {
-                  node.material.forEach((material) => {
-                    material.side = THREE.DoubleSide
-                    material.needsUpdate = true
+              const processMaterial = (mat) => {
+                if (url.includes('hologram_head')) {
+                  return new THREE.MeshStandardMaterial({
+                    color: 0x4488ff,
+                    emissive: 0x1144ff,
+                    emissiveIntensity: 0.5,
+                    transparent: true,
+                    opacity: 0.75,
+                    roughness: 0.2,
+                    metalness: 0.2,
+                    side: THREE.DoubleSide,
+                    blending: THREE.AdditiveBlending,
+                    depthWrite: false
                   })
-                } else if (node.material) {
-                  node.material.side = THREE.DoubleSide
-                  node.material.needsUpdate = true
                 }
+
+                const texture = mat.emissiveMap || mat.map
+                if (texture) {
+                  texture.colorSpace = THREE.SRGBColorSpace
+                  return new THREE.MeshBasicMaterial({
+                    map: texture,
+                    side: THREE.DoubleSide,
+                    transparent: mat.transparent || false,
+                    opacity: mat.opacity !== undefined ? mat.opacity : 1,
+                    alphaTest: mat.alphaTest || 0
+                  })
+                }
+                
+                mat.side = THREE.DoubleSide
+                return mat
+              }
+
+              // FIXED: Removed !isTable check. All models process equally.
+              if (Array.isArray(node.material)) {
+                node.material = node.material.map(processMaterial)
+              } else if (node.material) {
+                node.material = processMaterial(node.material)
               }
             })
 
@@ -209,5 +194,5 @@ export default function Scene() {
     }
   }, [])
 
-  return <div ref={mountRef} className="scene-shell" />
+  return <div ref={mountRef} className="scene-shell" style={{ width: '100%', height: '100vh' }} />
 }
