@@ -91,6 +91,12 @@ export default function Scene() {
     const controls = new OrbitControls(camera, renderer.domElement)
     controls.enableDamping = true
     controls.enablePan = false
+    controls.minAzimuthAngle = THREE.MathUtils.degToRad(-20)
+    controls.maxAzimuthAngle = THREE.MathUtils.degToRad(20)
+    controls.minPolarAngle = THREE.MathUtils.degToRad(60)
+    controls.maxPolarAngle = THREE.MathUtils.degToRad(80)
+    controls.minDistance = 1.5
+    controls.maxDistance = 3
     controls.target.set(0, 0, 0)
     controls.update()
 
