@@ -5,17 +5,17 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
 import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js'
 
 const MODEL_URLS = [
-  '/table.glb',
-  '/book1.glb',
-  '/book2.glb',
-  '/book3.glb',
-  '/resume.glb',
+  // '/table.glb',
+  // '/book1.glb',
+  // '/book2.glb',
+  // '/book3.glb',
+  // '/resume.glb',
   '/certificate.glb',
-  '/phone.glb',
-  '/phone_cable.glb',
-  '/hologram.glb',
+  // '/phone.glb',
+  // '/phone_cable.glb',
+  // '/hologram_base.glb',
   '/pendulum.glb',
-  '/head.glb',
+  // '/hologram_head.glb',
 ]
 
 export default function Scene() {
@@ -115,7 +115,7 @@ export default function Scene() {
 
               if (!isTable) {
                 const processMaterial = (mat) => {
-                  if (url.includes('head')) {
+                  if (url.includes('hologram_head')) {
                     // Custom hologram material to hide baking/compression artifacts
                     return new THREE.MeshStandardMaterial({
                       color: 0x4488ff,
