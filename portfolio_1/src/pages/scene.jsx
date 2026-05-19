@@ -103,25 +103,23 @@ export default function Scene() {
     const root = new THREE.Group()
     scene.add(root)
 
-    // Lights (Only affects standard materials like the unbaked hologram head)
+
+    //Lighting for non baked mats
     const ambient = new THREE.AmbientLight('#1a1a1a', 0.3) 
     scene.add(ambient)
-
     const keyLight = new THREE.DirectionalLight('#ffe8d0', 1.2)
     keyLight.position.set(-5, 8, 5)
     scene.add(keyLight)
-
     const fillLight = new THREE.DirectionalLight('#b8c8ff', 0.4)
     fillLight.position.set(5, 3, 2)
     scene.add(fillLight)
-
     const rimLight = new THREE.DirectionalLight('#ffd9b0', 0.6)
     rimLight.position.set(3, 5, -4)
     scene.add(rimLight)
 
     // Loaders
     const dracoLoader = new DRACOLoader()
-    dracoLoader.setDecoderPath('/draco/') // Ensure this path points to your draco folder in public/
+    dracoLoader.setDecoderPath('/draco/') 
 
     const loader = new GLTFLoader()
     loader.setDRACOLoader(dracoLoader)
@@ -130,8 +128,11 @@ export default function Scene() {
     let cancelled = false
 
     const render = () => {
-      composer.render() // Using composer instead of renderer
+      composer.render() 
     }
+
+    let headModel = null
+    let headWrapper = null
 
     const loadModel = (url) =>
       new Promise((resolve, reject) => {
@@ -191,7 +192,24 @@ export default function Scene() {
               }
             })
 
-            scene.add(model)
+            if (url.includes('head')) {
+              model.scale.set(0.8, 0.8, 0.8)
+              model.updateMatrixWorld(true)
+
+              const bounds = new THREE.Box3().setFromObject(model)
+              const center = bounds.getCenter(new THREE.Vector3())
+
+              headWrapper = new THREE.Group()
+              headWrapper.position.copy(center)
+              model.position.sub(center)
+              headWrapper.add(model)
+
+              headModel = headWrapper
+              headModel.position.x -= 0.02
+              scene.add(headWrapper)
+            } else {
+              scene.add(model)
+            }
             render()
             resolve(model)
           },
@@ -206,7 +224,10 @@ export default function Scene() {
 
     const animate = () => {
       controls.update()
-      composer.render() // Using composer instead of renderer
+      if(headModel){
+        headModel.rotateY(0.02)
+      }
+      composer.render() 
       requestAnimationFrame(animate)
     }
 
