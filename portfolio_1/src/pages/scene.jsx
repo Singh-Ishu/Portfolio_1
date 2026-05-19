@@ -4,6 +4,14 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
 import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js'
 
+// Post-Processing Imports
+import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js'
+import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js'
+import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js'
+import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js'
+import { VignetteShader } from 'three/examples/jsm/shaders/VignetteShader.js'
+import { RGBShiftShader } from 'three/examples/jsm/shaders/RGBShiftShader.js'
+
 const MODEL_URLS = [
   '/table.glb',
   '/book1.glb',
@@ -12,6 +20,7 @@ const MODEL_URLS = [
   '/resume.glb',
   '/certificate.glb',
   '/phone.glb',
+  '/phone_cable.glb',
   '/hologram_base.glb',
   '/pendulum.glb',
   '/head.glb',
@@ -28,7 +37,6 @@ export default function Scene() {
     scene.background = new THREE.Color('#000000')
 
     const camera = new THREE.PerspectiveCamera(28.6, window.innerWidth / window.innerHeight, 0.1, 1000)
-
     camera.position.set(0.34821, 0.80187, 1.6626)
 
     const euler = new THREE.Euler(
@@ -39,6 +47,7 @@ export default function Scene() {
     )
     camera.quaternion.setFromEuler(euler)
 
+    // Renderer Setup
     const renderer = new THREE.WebGLRenderer({
       antialias: true,
       alpha: false,
@@ -48,13 +57,37 @@ export default function Scene() {
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
     renderer.setSize(mount.clientWidth, mount.clientHeight)
     renderer.outputColorSpace = THREE.SRGBColorSpace
-    
-    // FIXED: Match Blender's filmic color management
-    renderer.toneMapping = THREE.ACESFilmicToneMapping
+    renderer.toneMapping = THREE.ACESFilmicToneMapping // Matches Blender Filmic
     renderer.toneMappingExposure = 1
     renderer.shadowMap.enabled = false
     mount.appendChild(renderer.domElement)
 
+    // Post-Processing Setup
+    const composer = new EffectComposer(renderer)
+    const renderPass = new RenderPass(scene, camera)
+    composer.addPass(renderPass)
+
+    // 1. Glare -> UnrealBloomPass (Resolution, Strength, Radius, Threshold)
+    const bloomPass = new UnrealBloomPass(
+      new THREE.Vector2(window.innerWidth, window.innerHeight),
+      1.2, 
+      0.85, 
+      0.85  
+    )
+    composer.addPass(bloomPass)
+
+    // 2. Chromatic Aberration -> RGBShiftShader
+    const caPass = new ShaderPass(RGBShiftShader)
+    caPass.uniforms['amount'].value = 0.001
+    composer.addPass(caPass)
+
+    // 3. Vignette -> VignetteShader
+    const vignettePass = new ShaderPass(VignetteShader)
+    vignettePass.uniforms['offset'].value = 1.0
+    vignettePass.uniforms['darkness'].value = 1.2
+    composer.addPass(vignettePass)
+
+    // Controls
     const controls = new OrbitControls(camera, renderer.domElement)
     controls.enableDamping = true
     controls.enablePan = true
@@ -64,8 +97,7 @@ export default function Scene() {
     const root = new THREE.Group()
     scene.add(root)
 
-    // Lights kept for the unbaked hologram_head. 
-    // MeshBasicMaterial (the baked models) will simply ignore these.
+    // Lights (Only affects standard materials like the unbaked hologram head)
     const ambient = new THREE.AmbientLight('#1a1a1a', 0.3) 
     scene.add(ambient)
 
@@ -81,16 +113,18 @@ export default function Scene() {
     rimLight.position.set(3, 5, -4)
     scene.add(rimLight)
 
+    // Loaders
     const dracoLoader = new DRACOLoader()
-    dracoLoader.setDecoderPath('/draco/')
+    dracoLoader.setDecoderPath('/draco/') // Ensure this path points to your draco folder in public/
 
     const loader = new GLTFLoader()
     loader.setDRACOLoader(dracoLoader)
+    
     let resizeObserver
     let cancelled = false
 
     const render = () => {
-      renderer.render(scene, camera)
+      composer.render() // Using composer instead of renderer
     }
 
     const loadModel = (url) =>
@@ -127,6 +161,7 @@ export default function Scene() {
                   })
                 }
 
+                // Convert all baked objects to MeshBasicMaterial
                 const texture = mat.emissiveMap || mat.map
                 if (texture) {
                   texture.colorSpace = THREE.SRGBColorSpace
@@ -143,7 +178,6 @@ export default function Scene() {
                 return mat
               }
 
-              // FIXED: Removed !isTable check. All models process equally.
               if (Array.isArray(node.material)) {
                 node.material = node.material.map(processMaterial)
               } else if (node.material) {
@@ -166,7 +200,7 @@ export default function Scene() {
 
     const animate = () => {
       controls.update()
-      renderer.render(scene, camera)
+      composer.render() // Using composer instead of renderer
       requestAnimationFrame(animate)
     }
 
@@ -177,6 +211,7 @@ export default function Scene() {
       camera.aspect = mount.clientWidth / mount.clientHeight
       camera.updateProjectionMatrix()
       renderer.setSize(mount.clientWidth, mount.clientHeight)
+      composer.setSize(mount.clientWidth, mount.clientHeight) // Sync composer size
       render()
     }
 
@@ -190,6 +225,7 @@ export default function Scene() {
       controls.dispose()
       dracoLoader.dispose()
       renderer.dispose()
+      composer.dispose()
       mount.removeChild(renderer.domElement)
     }
   }, [])
