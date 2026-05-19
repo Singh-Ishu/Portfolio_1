@@ -152,6 +152,7 @@ export default function Scene() {
         groupKey,
         basePosition: object.position.clone(),
         baseScale: object.scale.clone(),
+        baseRotation: object.rotation.clone(),
         currentHover: 0,
       }
 
@@ -177,6 +178,7 @@ export default function Scene() {
 
     let headModel = null
     let headWrapper = null
+    const headGlowMaterials = []
 
     const loadModel = (url) =>
       new Promise((resolve, reject) => {
@@ -198,7 +200,7 @@ export default function Scene() {
 
               const processMaterial = (mat) => {
                 if (url.includes('head')) {
-                  return new THREE.MeshStandardMaterial({
+                  const headMaterial = new THREE.MeshStandardMaterial({
                     color: 0x4488ff,
                     emissive: 0x1144ff,
                     emissiveIntensity: 0.5,
@@ -210,6 +212,8 @@ export default function Scene() {
                     blending: THREE.AdditiveBlending,
                     depthWrite: false
                   })
+                  headGlowMaterials.push(headMaterial)
+                  return headMaterial
                 }
 
                 // Convert all baked objects to MeshBasicMaterial
@@ -250,6 +254,7 @@ export default function Scene() {
 
               headModel = headWrapper
               headModel.position.x -= 0.02
+              headWrapper.userData.hoverRole = 'head'
               scene.add(headWrapper)
               registerHoverObject(headWrapper, 'head-hologram')
             } else if (url.includes('table')) {
@@ -261,6 +266,15 @@ export default function Scene() {
                 : url.includes('hologram_base')
                   ? 'head-hologram'
                   : url
+              if (url.includes('book1')) {
+                model.userData.hoverRole = 'book-1'
+              } else if (url.includes('book2')) {
+                model.userData.hoverRole = 'book-2'
+              } else if (url.includes('book3')) {
+                model.userData.hoverRole = 'book-3'
+              } else {
+                model.userData.hoverRole = hoverGroupKey === 'head-hologram' ? 'hologram-base' : 'default'
+              }
               registerHoverObject(model, hoverGroupKey)
             }
             render()
@@ -306,22 +320,62 @@ export default function Scene() {
 
     const animate = () => {
       controls.update()
-      hoverGroups.forEach((group) => {
-        group.entries.forEach((entry) => {
-          entry.currentHover += (group.targetHover - entry.currentHover) * 0.12
-          entry.object.position.x = entry.basePosition.x
-          entry.object.position.y = entry.basePosition.y + entry.currentHover * 0.025
-          entry.object.position.z = entry.basePosition.z
-          entry.object.scale.set(
-            entry.baseScale.x * (1 + entry.currentHover * 0.04),
-            entry.baseScale.y * (1 + entry.currentHover * 0.04),
-            entry.baseScale.z * (1 + entry.currentHover * 0.04),
-          )
-        })
-      })
       if(headModel){
         headModel.rotateY(0.02)
       }
+      
+      hoverGroups.forEach((group) => {
+        group.entries.forEach((entry) => {
+          entry.currentHover += (group.targetHover - entry.currentHover) * 0.12
+          const hoverRole = entry.object.userData?.hoverRole || 'default'
+          const liftAmount =
+            hoverRole === 'head'
+              ? 0.1
+              : hoverRole === 'hologram-base'
+                ? 0.018
+                : hoverRole === 'book-3'
+                  ? 0.05
+                  : hoverRole === 'book-2'
+                    ? 0.035
+                    : hoverRole === 'book-1'
+                      ? 0.02
+                      : 0.025
+          const scaleAmount = hoverRole === 'head' ? 0.5 : hoverRole === 'hologram-base' ? 0.02 : 0.04
+          const tiltAmount =
+            hoverRole === 'book-3'
+              ? 0.14
+              : hoverRole === 'book-2'
+                ? 0.1
+                : hoverRole === 'book-1'
+                  ? 0.06
+                  : 0
+          const tiltDirection = hoverRole === 'book-1' ? -1 : 1
+
+          entry.object.position.x = entry.basePosition.x
+          entry.object.position.y = entry.basePosition.y + entry.currentHover * liftAmount
+          entry.object.position.z = entry.basePosition.z
+          entry.object.scale.set(
+            entry.baseScale.x * (1 + entry.currentHover * scaleAmount),
+            entry.baseScale.y * (1 + entry.currentHover * scaleAmount),
+            entry.baseScale.z * (1 + entry.currentHover * scaleAmount),
+          )
+          entry.object.rotation.x = entry.baseRotation.x + entry.currentHover * tiltAmount * 0.55
+          entry.object.rotation.y = entry.baseRotation.y + entry.currentHover * tiltAmount * 0.2 * tiltDirection
+          entry.object.rotation.z = entry.baseRotation.z + entry.currentHover * tiltAmount * tiltDirection
+        })
+      })
+
+      const headGroup = hoverGroups.get('head-hologram')
+      const headHover = headGroup
+        ? headGroup.entries.find((entry) => entry.object.userData?.hoverRole === 'head')?.currentHover || 0
+        : 0
+
+      headGlowMaterials.forEach((material) => {
+        material.emissiveIntensity = 0.5 + headHover * 1.6
+        material.opacity = 0.75 + headHover * 0.1
+      })
+
+      
       composer.render() 
       requestAnimationFrame(animate)
     }
