@@ -320,10 +320,6 @@ export default function Scene() {
 
     const animate = () => {
       controls.update()
-      if(headModel){
-        headModel.rotateY(0.02)
-      }
-      
       hoverGroups.forEach((group) => {
         group.entries.forEach((entry) => {
           entry.currentHover += (group.targetHover - entry.currentHover) * 0.12
@@ -359,11 +355,18 @@ export default function Scene() {
             entry.baseScale.y * (1 + entry.currentHover * scaleAmount),
             entry.baseScale.z * (1 + entry.currentHover * scaleAmount),
           )
-          entry.object.rotation.x = entry.baseRotation.x + entry.currentHover * tiltAmount * 0.55
-          entry.object.rotation.y = entry.baseRotation.y + entry.currentHover * tiltAmount * 0.2 * tiltDirection
-          entry.object.rotation.z = entry.baseRotation.z + entry.currentHover * tiltAmount * tiltDirection
+
+          if (hoverRole.startsWith('book-')) {
+            entry.object.rotation.x = entry.baseRotation.x + entry.currentHover * tiltAmount * 0.55
+            entry.object.rotation.y = entry.baseRotation.y + entry.currentHover * tiltAmount * 0.2 * tiltDirection
+            entry.object.rotation.z = entry.baseRotation.z + entry.currentHover * tiltAmount * tiltDirection
+          }
         })
       })
+
+      if(headModel){
+        headModel.rotateY(0.02)
+      }
 
       const headGroup = hoverGroups.get('head-hologram')
       const headHover = headGroup
