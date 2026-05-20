@@ -11,8 +11,9 @@ import InteractionManager from './InteractionManager.js'
 import ModelLoader from './ModelLoader.js'
 
 export default class SceneManager {
-  constructor(container) {
+  constructor(container, onHoverChange) {
     this.container = container
+    this.onHoverChange = onHoverChange
     this.animationId = null
     this.init()
   }
@@ -25,7 +26,7 @@ export default class SceneManager {
     this.setupControls()
     this.setupLights()
 
-    this.interactionManager = new InteractionManager(this.renderer, this.camera)
+    this.interactionManager = new InteractionManager(this.renderer, this.camera, this.onHoverChange)
     
     this.modelLoader = new ModelLoader(this.scene, this.interactionManager, () => this.render())
     this.modelLoader.loadAll()

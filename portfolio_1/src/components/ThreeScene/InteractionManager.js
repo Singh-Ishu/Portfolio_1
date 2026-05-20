@@ -1,16 +1,18 @@
 import * as THREE from 'three'
 
 export default class InteractionManager {
-  constructor(renderer, camera) {
+  constructor(renderer, camera, onHoverChange) {
     this.renderer = renderer
     this.camera = camera
     this.raycaster = new THREE.Raycaster()
     this.pointer = new THREE.Vector2()
     this.hoverGroups = new Map()
+    this.onHoverChange = onHoverChange
+    this.currentHoverGroup = null
 
     this.onPointerMove = this.onPointerMove.bind(this)
     this.onPointerLeave = this.onPointerLeave.bind(this)
-    this.onClick = this.onClick.bind(this) // Preparing for future click redirects
+    this.onClick = this.onClick.bind(this)
 
     this.renderer.domElement.addEventListener('pointermove', this.onPointerMove)
     this.renderer.domElement.addEventListener('pointerleave', this.onPointerLeave)
@@ -53,9 +55,18 @@ export default class InteractionManager {
   }
 
   setHoveredGroup(groupKey) {
+    let currentlyHovered = null
     this.hoverGroups.forEach((group, key) => {
       group.targetHover = key === groupKey ? 1 : 0
+      if (key === groupKey) currentlyHovered = key
     })
+
+    if (this.currentHoverGroup !== currentlyHovered) {
+      this.currentHoverGroup = currentlyHovered
+      if (this.onHoverChange) {
+        this.onHoverChange(currentlyHovered)
+      }
+    }
   }
 
   onPointerMove(event) {
@@ -92,7 +103,7 @@ export default class InteractionManager {
         activeGroup = key
       }
     })
-    
+
     if (activeGroup) {
       console.log(`Clicked on group: ${activeGroup}`)
       // Here you could emit an event or call a callback to redirect
@@ -110,31 +121,31 @@ export default class InteractionManager {
     this.hoverGroups.forEach((group) => {
       group.entries.forEach((entry) => {
         entry.currentHover += (group.targetHover - entry.currentHover) * 0.12
-        
+
         const hoverRole = entry.object.userData?.hoverRole || 'default'
-        
+
         const liftAmount = hoverRole === 'head' ? 0.1
-                         : hoverRole === 'hologram-base' ? 0.018
-                         : hoverRole === 'book-3' ? 0.05
-                         : hoverRole === 'book-2' ? 0.035
-                         : hoverRole === 'book-1' ? 0.02
-                         : 0.025
-                         
-        const scaleAmount = hoverRole === 'head' ? 0.5 
-                          : hoverRole === 'hologram-base' ? 0.02 
-                          : 0.04
-                          
+          : hoverRole === 'hologram-base' ? 0.018
+            : hoverRole === 'book-3' ? 0.05
+              : hoverRole === 'book-2' ? 0.035
+                : hoverRole === 'book-1' ? 0.02
+                  : 0.025
+
+        const scaleAmount = hoverRole === 'head' ? 0.5
+          : hoverRole === 'hologram-base' ? 0.02
+            : 0.04
+
         const tiltAmount = hoverRole === 'book-3' ? 0.14
-                         : hoverRole === 'book-2' ? 0.1
-                         : hoverRole === 'book-1' ? 0.06
-                         : 0
-                         
+          : hoverRole === 'book-2' ? 0.1
+            : hoverRole === 'book-1' ? 0.06
+              : 0
+
         const tiltDirection = hoverRole === 'book-1' ? -1 : 1
 
         entry.object.position.x = entry.basePosition.x
         entry.object.position.y = entry.basePosition.y + entry.currentHover * liftAmount
         entry.object.position.z = entry.basePosition.z
-        
+
         entry.object.scale.set(
           entry.baseScale.x * (1 + entry.currentHover * scaleAmount),
           entry.baseScale.y * (1 + entry.currentHover * scaleAmount),
