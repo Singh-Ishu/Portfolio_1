@@ -1,0 +1,38 @@
+[
+  {
+    "id": 1,
+    "title": "FFmpeg WebGPU Acceleration",
+    "subtitle": "Hardware-accelerated video filtering",
+    "points": [
+      "Integrated WebGPU hardware support into FFmpeg.",
+      "Implemented vf_scale_webgpu custom filter for high-performance scaling.",
+      "Resolved complex runtime errors regarding filter registration."
+    ],
+    "stackTags": ["C", "WebGPU", "FFmpeg", "Wasm"],
+    "normalTags": ["Open Source", "Video Processing", "Performance"]
+  },
+  {
+    "id": 2,
+    "title": "Interactive 3D Portfolio",
+    "subtitle": "Immersive web experience",
+    "points": [
+      "Built a highly interactive portfolio using React and Three.js.",
+      "Exported baked lighting from Blender for realistic rendering.",
+      "Implemented custom raycasting and object interactions."
+    ],
+    "stackTags": ["React", "Three.js", "Blender"],
+    "normalTags": ["Design", "Frontend", "3D"]
+  },
+  {
+    "id": 3,
+    "title": "AI Task Manager",
+    "subtitle": "Smart scheduling and organization",
+    "points": [
+      "Developed a full-stack task manager predicting task completion time.",
+      "Used natural language processing to categorize and prioritize tasks.",
+      "Implemented a sleek, responsive dashboard."
+    ],
+    "stackTags": ["Next.js", "Node.js", "Python", "PostgreSQL"],
+    "normalTags": ["Productivity", "AI", "Full-Stack"]
+  }
+]

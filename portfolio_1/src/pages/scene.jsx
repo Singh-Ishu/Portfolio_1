@@ -1,10 +1,12 @@
 import { useEffect, useRef, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import SceneManager from '../components/ThreeScene/SceneManager.js'
 
 export default function Scene() {
   const mountRef = useRef(null)
   const [hoverText, setHoverText] = useState(null)
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 })
+  const navigate = useNavigate()
 
   useEffect(() => {
     const handleMouseMove = (e) => {
@@ -46,7 +48,33 @@ export default function Scene() {
       setHoverText(text)
     }
 
-    const sceneManager = new SceneManager(mount, handleHover)
+    const handleRedirect = (groupKey) => {
+      switch (groupKey) {
+        case '/phone.glb':
+        case '/phone_cable.glb':
+          navigate('/contact')
+          break
+        case '/certificate.glb':
+          navigate('/certifications')
+          break
+        case 'head-hologram':
+          navigate('/about')
+          break
+        case '/pendulum.glb':
+          navigate('/projects')
+          break
+        case 'books':
+          navigate('/tech-stack')
+          break
+        case '/resume.glb':
+          navigate('/resume')
+          break
+        default:
+          break
+      }
+    }
+
+    const sceneManager = new SceneManager(mount, handleHover, handleRedirect)
 
     return () => {
       sceneManager.dispose()

@@ -1,13 +1,14 @@
 import * as THREE from 'three'
 
 export default class InteractionManager {
-  constructor(renderer, camera, onHoverChange) {
+  constructor(renderer, camera, onHoverChange, onRedirect) {
     this.renderer = renderer
     this.camera = camera
     this.raycaster = new THREE.Raycaster()
     this.pointer = new THREE.Vector2()
     this.hoverGroups = new Map()
     this.onHoverChange = onHoverChange
+    this.onRedirect = onRedirect
     this.currentHoverGroup = null
 
     this.onPointerMove = this.onPointerMove.bind(this)
@@ -95,8 +96,7 @@ export default class InteractionManager {
     this.renderer.domElement.style.cursor = 'default'
   }
 
-  onClick() {
-    // Currently just logs the clicked object group. Ready for routing.
+    onClick() {
     let activeGroup = null
     this.hoverGroups.forEach((group, key) => {
       if (group.targetHover === 1) {
@@ -104,9 +104,8 @@ export default class InteractionManager {
       }
     })
 
-    if (activeGroup) {
-      console.log(`Clicked on group: ${activeGroup}`)
-      // Here you could emit an event or call a callback to redirect
+    if (activeGroup && this.onRedirect) {
+      this.onRedirect(activeGroup)
     }
   }
 
