@@ -131,10 +131,25 @@ export default class SceneManager {
 
   onResize = () => {
     if (!this.container) return
-    this.camera.aspect = this.container.clientWidth / this.container.clientHeight
+    const width = this.container.clientWidth
+    const height = this.container.clientHeight
+    const aspect = width / height
+    
+    this.camera.aspect = aspect
+    
+    // Base FOV that looks good on desktop/square screens
+    const baselineFov = 28.6
+    
+    // If screen is narrow (mobile), increase vertical FOV to maintain horizontal view
+    if (aspect < 1) {
+      this.camera.fov = baselineFov / aspect
+    } else {
+      this.camera.fov = baselineFov
+    }
+    
     this.camera.updateProjectionMatrix()
-    this.renderer.setSize(this.container.clientWidth, this.container.clientHeight)
-    this.composer.setSize(this.container.clientWidth, this.container.clientHeight)
+    this.renderer.setSize(width, height)
+    this.composer.setSize(width, height)
     this.render()
   }
 
