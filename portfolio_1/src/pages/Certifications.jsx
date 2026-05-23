@@ -3,10 +3,7 @@ import BackButton from '../components/BackButton';
 
 export default function Certifications() {
   const certs = [
-    { title: "AWS Certified Solutions Architect", issuer: "Amazon Web Services", date: "2025" },
-    { title: "Advanced React Patterns", issuer: "Frontend Masters", date: "2024" },
-    { title: "WebGL & Three.js Deep Dive", issuer: "Three.js Journey", date: "2024" },
-    { title: "C++ Performance Engineering", issuer: "Udacity", date: "2023" }
+    { title: "Database Design and Basic SQL in PostgreSQL", issuer: "Coursera/ Uni of Michigan", date: "2026", link: "https://www.coursera.org/account/accomplishments/verify/38YM2RMPI8XO" },
   ];
 
   useEffect(() => {
@@ -21,24 +18,27 @@ export default function Certifications() {
   }, []);
 
   return (
-    <main>
+    <>
       <BackButton />
-      <header>
+      <main className="container section fade-in">
         <h1>Certifications</h1>
-        <p>Here is a list of my professional certifications and achievements.</p>
-      </header>
+        <p className="lead">Here is a list of my professional certifications and achievements.</p>
 
-      <section>
-        <ul>
-          {certs.map((cert, i) => (
-            <li key={i}>
-              <h2>{cert.title}</h2>
-              <p><strong>Issuer:</strong> {cert.issuer}</p>
-              <p><strong>Year:</strong> {cert.date}</p>
-            </li>
-          ))}
-        </ul>
-      </section>
-    </main>
+        <div className="skills-grid" style={{ gridTemplateColumns: '1fr', maxWidth: '800px' }}>
+          <div className="skill-group">
+            <span className="category-title">Professional Achievements</span>
+            {certs.map((cert, i) => (
+              <div className="skill-item" key={i}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                  <span className="skill-name">{cert.title}</span>
+                  <span className="social-label">{cert.issuer}</span>
+                </div>
+                <span className="skill-level">{cert.date}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </main>
+    </>
   );
 }
