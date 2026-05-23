@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import BackButton from '../components/BackButton';
+import Lanyard from '../components/Lanyard';
 
 export default function About() {
   useEffect(() => {
@@ -23,18 +24,15 @@ export default function About() {
             <h1>Building worlds through code & aesthetics.</h1>
             <p className="lead">Senior Product Designer & Creative Developer focused on cinematic digital experiences.</p>
           </div>
-          <div className="parallax-wrapper">
-            <div className="parallax-card" id="profile-card">
-              <div style={{position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, transparent 60%, black)'}}></div>
-              <div style={{width: '100%', height: '100%', background: '#1a1a1a', display: 'grid', placeItems: 'center', color: '#404040', fontFamily: 'var(--font-mono)', fontSize: '12px'}}>
-                [ PORTRAIT · CINEMATIC ]
-              </div>
+          <div style={{ position: 'relative', width: '100%', minHeight: '500px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <div style={{ position: 'absolute', top: '-10%', left: 0, width: '100%', height: '120%' }}>
+              <Lanyard />
             </div>
           </div>
         </div>
       </main>
 
-      <section className="section container fade-in" style={{animationDelay: '0.2s'}} data-od-id="bio">
+      <section className="section container fade-in" style={{ animationDelay: '0.2s' }} data-od-id="bio">
         <div className="about-grid">
           <div></div>
           <div className="bio-text">

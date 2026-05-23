@@ -12,10 +12,10 @@ function ProjectCard({ project }) {
     const rect = e.currentTarget.getBoundingClientRect();
     const x = (e.clientX - rect.left) / rect.width;
     const y = (e.clientY - rect.top) / rect.height;
-    
+
     const rotateX = (y - 0.5) * -15;
     const rotateY = (x - 0.5) * 15;
-    
+
     innerRef.current.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
   };
 
@@ -25,9 +25,9 @@ function ProjectCard({ project }) {
   };
 
   return (
-    <article 
-      className="project-card" 
-      onMouseMove={handleMouseMove} 
+    <article
+      className="project-card"
+      onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
     >
       <div className="project-inner" ref={innerRef}>
@@ -43,10 +43,10 @@ function ProjectCard({ project }) {
             </a>
           )}
         </div>
-        <p className="metric-label" style={{marginBottom: '8px'}}>{project.normalTags[0] || 'Project'}</p>
+        <p className="metric-label" style={{ marginBottom: '8px' }}>{project.normalTags[0] || 'Project'}</p>
         <h2>{project.title}</h2>
         <p className="project-subtitle">{project.subtitle}</p>
-        
+
         <div className="project-tech">
           {project.stackTags.map(tech => (
             <span key={tech} className="tech-pill">{tech}</span>
@@ -54,14 +54,11 @@ function ProjectCard({ project }) {
         </div>
 
         <div className="project-metrics">
-          <div>
-            <div className="metric-val">{project.normalTags.length}</div>
-            <div className="metric-label">Categories</div>
-          </div>
-          <div>
-            <div className="metric-val">{project.points.length}</div>
-            <div className="metric-label">Key Points</div>
-          </div>
+          <ul style={{ gridColumn: '1 / -1', listStyleType: 'disc', paddingLeft: '20px', margin: 0, color: 'var(--muted)', fontSize: '14px', lineHeight: '1.6' }}>
+            {project.points.map((point, index) => (
+              <li key={index} style={{ marginBottom: '8px' }}>{point}</li>
+            ))}
+          </ul>
         </div>
       </div>
     </article>
@@ -84,8 +81,8 @@ export default function Projects() {
 
   const allTags = Array.from(new Set(projectsData.flatMap(p => p.normalTags)));
 
-  const filteredProjects = filter === 'all' 
-    ? projectsData 
+  const filteredProjects = filter === 'all'
+    ? projectsData
     : projectsData.filter(p => p.normalTags.includes(filter));
 
   return (
@@ -95,14 +92,14 @@ export default function Projects() {
         <h1>Featured Projects</h1>
 
         <div className="tag-filter">
-          <button 
+          <button
             className={`tag-btn ${filter === 'all' ? 'active' : ''}`}
             onClick={() => setFilter('all')}
           >
             All
           </button>
           {allTags.map(tag => (
-            <button 
+            <button
               key={tag}
               className={`tag-btn ${filter === tag ? 'active' : ''}`}
               onClick={() => setFilter(tag)}
