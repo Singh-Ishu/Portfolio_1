@@ -11,12 +11,22 @@ export default class InteractionManager {
     this.onRedirect = onRedirect
     this.currentHoverGroup = null
 
+    this.touchDownPos = new THREE.Vector2()
+    this.holdTimeout = null
+    this.isHolding = false
+    this.touchGroupKey = null
+
     this.onPointerMove = this.onPointerMove.bind(this)
     this.onPointerLeave = this.onPointerLeave.bind(this)
+    this.onPointerDown = this.onPointerDown.bind(this)
+    this.onPointerUp = this.onPointerUp.bind(this)
     this.onClick = this.onClick.bind(this)
 
     this.renderer.domElement.addEventListener('pointermove', this.onPointerMove)
     this.renderer.domElement.addEventListener('pointerleave', this.onPointerLeave)
+    this.renderer.domElement.addEventListener('pointerdown', this.onPointerDown)
+    this.renderer.domElement.addEventListener('pointerup', this.onPointerUp)
+    this.renderer.domElement.addEventListener('pointercancel', this.onPointerUp)
     this.renderer.domElement.addEventListener('click', this.onClick)
   }
 
@@ -71,6 +81,25 @@ export default class InteractionManager {
   }
 
   onPointerMove(event) {
+    if (event.pointerType === 'touch') {
+      if (this.holdTimeout || this.isHolding) {
+        const dx = event.clientX - this.touchDownPos.x
+        const dy = event.clientY - this.touchDownPos.y
+        if (Math.sqrt(dx * dx + dy * dy) > 10) {
+          if (this.holdTimeout) {
+            clearTimeout(this.holdTimeout)
+            this.holdTimeout = null
+          }
+          if (this.isHolding) {
+            this.setHoveredGroup(null)
+            this.isHolding = false
+          }
+          this.touchGroupKey = null
+        }
+      }
+      return
+    }
+
     const rect = this.renderer.domElement.getBoundingClientRect()
     this.pointer.x = ((event.clientX - rect.left) / rect.width) * 2 - 1
     this.pointer.y = -(((event.clientY - rect.top) / rect.height) * 2 - 1)
@@ -89,6 +118,57 @@ export default class InteractionManager {
 
     this.setHoveredGroup(hitEntry ? hitEntry.groupKey : null)
     this.renderer.domElement.style.cursor = hitEntry ? 'pointer' : 'default'
+  }
+
+  onPointerDown(event) {
+    if (event.pointerType !== 'touch') return
+
+    const rect = this.renderer.domElement.getBoundingClientRect()
+    this.pointer.x = ((event.clientX - rect.left) / rect.width) * 2 - 1
+    this.pointer.y = -(((event.clientY - rect.top) / rect.height) * 2 - 1)
+
+    this.raycaster.setFromCamera(this.pointer, this.camera)
+
+    const candidates = []
+    this.hoverGroups.forEach((group) => {
+      group.entries.forEach((entry) => {
+        candidates.push(entry.object)
+      })
+    })
+
+    const intersections = this.raycaster.intersectObjects(candidates, true)
+    const hitEntry = intersections.length > 0 ? this.getHoverEntry(intersections[0].object) : null
+    
+    this.touchGroupKey = hitEntry ? hitEntry.groupKey : null
+    this.touchDownPos.set(event.clientX, event.clientY)
+    this.isHolding = false
+
+    if (this.touchGroupKey) {
+      this.holdTimeout = setTimeout(() => {
+        this.isHolding = true
+        this.setHoveredGroup(this.touchGroupKey)
+      }, 400)
+    }
+  }
+
+  onPointerUp(event) {
+    if (event.pointerType !== 'touch') return
+
+    if (this.holdTimeout) {
+      clearTimeout(this.holdTimeout)
+      this.holdTimeout = null
+    }
+
+    if (this.isHolding) {
+      this.setHoveredGroup(null)
+      this.isHolding = false
+      this.touchGroupKey = null
+    } else {
+      if (this.touchGroupKey && this.onRedirect) {
+        this.onRedirect(this.touchGroupKey)
+      }
+      this.touchGroupKey = null
+    }
   }
 
   onPointerLeave() {
@@ -163,6 +243,9 @@ export default class InteractionManager {
   dispose() {
     this.renderer.domElement.removeEventListener('pointermove', this.onPointerMove)
     this.renderer.domElement.removeEventListener('pointerleave', this.onPointerLeave)
+    this.renderer.domElement.removeEventListener('pointerdown', this.onPointerDown)
+    this.renderer.domElement.removeEventListener('pointerup', this.onPointerUp)
+    this.renderer.domElement.removeEventListener('pointercancel', this.onPointerUp)
     this.renderer.domElement.removeEventListener('click', this.onClick)
   }
 }
