@@ -6,6 +6,7 @@ import Resume from './pages/Resume.jsx';
 import About from './pages/About.jsx';
 import Certifications from './pages/Certifications.jsx';
 import TechStack from './pages/TechStack.jsx';
+import './pages.css';
 
 function App() {
   return (
