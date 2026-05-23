@@ -9,7 +9,9 @@
       "Resolved complex runtime errors regarding filter registration."
     ],
     "stackTags": ["C", "WebGPU", "FFmpeg", "Wasm"],
-    "normalTags": ["Open Source", "Video Processing", "Performance"]
+    "normalTags": ["Open Source", "Video Processing", "Performance"],
+    "github": "https://github.com/Singh-Ishu/FFmpeg-WebGPU",
+    "livelink": "https://ffmpeg-webgpu-demo.vercel.app/"
   },
   {
     "id": 2,
@@ -21,7 +23,9 @@
       "Implemented custom raycasting and object interactions."
     ],
     "stackTags": ["React", "Three.js", "Blender"],
-    "normalTags": ["Design", "Frontend", "3D"]
+    "normalTags": ["Design", "Frontend", "3D"],
+    "github": "https://github.com/Singh-Ishu/Portfolio_1",
+    "livelink": "https://ishaansingh.dev/"
   },
   {
     "id": 3,
@@ -33,6 +37,8 @@
       "Implemented a sleek, responsive dashboard."
     ],
     "stackTags": ["Next.js", "Node.js", "Python", "PostgreSQL"],
-    "normalTags": ["Productivity", "AI", "Full-Stack"]
+    "normalTags": ["Productivity", "AI", "Full-Stack"],
+    "github": "https://github.com/Singh-Ishu/ai-task-manager",
+    "livelink": "https://ai-task-manager.vercel.app/"
   }
 ]

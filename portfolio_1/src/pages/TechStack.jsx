@@ -21,10 +21,12 @@ export default function TechStack() {
     { name: 'Docker', category: 'DevOps' }
   ];
 
-  const filteredTech = allTech.filter(tech => 
-    tech.name.toLowerCase().includes(query.toLowerCase()) || 
-    tech.category.toLowerCase().includes(query.toLowerCase())
-  );
+  // Group technologies by category
+  const categories = allTech.reduce((acc, tech) => {
+    if (!acc[tech.category]) acc[tech.category] = [];
+    acc[tech.category].push(tech);
+    return acc;
+  }, {});
 
   useEffect(() => {
     document.title = "Tech Stack - Ishaan Singh";
@@ -38,38 +40,45 @@ export default function TechStack() {
   }, []);
 
   return (
-    <main>
+    <>
       <BackButton />
-      <header>
-        <h1>Tech Stack</h1>
-        <p>Search and explore the technologies I use.</p>
-      </header>
-      
-      <section>
-        <label htmlFor="techSearch">Search Technology</label>
-        <input 
-          id="techSearch"
-          type="text" 
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          placeholder="e.g. React, Backend, C++" 
-        />
-      </section>
+      <main className="container section fade-in" data-od-id="skills-content">
+        <h1>Skills & Tech</h1>
+        
+        <div className="search-container">
+          <input 
+            type="text" 
+            className="search-input" 
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Search stack..." 
+            autoComplete="off"
+          />
+        </div>
 
-      <section>
-        {filteredTech.length > 0 ? (
-          <ul>
-            {filteredTech.map((tech) => (
-              <li key={tech.name}>
-                <h2>{tech.name}</h2>
-                <p>Category: {tech.category}</p>
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <p>No technologies found matching "{query}".</p>
-        )}
-      </section>
-    </main>
+        <div className="skills-grid">
+          {Object.entries(categories).map(([categoryName, techs]) => {
+            const filteredTechs = techs.filter(tech => 
+              tech.name.toLowerCase().includes(query.toLowerCase()) || 
+              tech.category.toLowerCase().includes(query.toLowerCase())
+            );
+
+            if (filteredTechs.length === 0) return null;
+
+            return (
+              <div className="skill-group" key={categoryName}>
+                <span className="category-title">{categoryName}</span>
+                {filteredTechs.map(tech => (
+                  <div className="skill-item" key={tech.name}>
+                    <span className="skill-name">{tech.name}</span>
+                    <span className="skill-level">Advanced</span>
+                  </div>
+                ))}
+              </div>
+            );
+          })}
+        </div>
+      </main>
+    </>
   );
 }

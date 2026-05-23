@@ -29,29 +29,30 @@ export default function Resume() {
   };
 
   return (
-    <main>
+    <>
       <BackButton />
-      <header>
+      <main className="container section fade-in">
         <h1>Tailored Resume</h1>
-        <p>Enter the role you are hiring for, and I will provide the most relevant version of my resume tailored to your needs.</p>
-      </header>
+        <p className="lead">Enter the role you are hiring for, and I will provide the most relevant version of my resume tailored to your needs.</p>
 
-      <section>
-        <form onSubmit={handleDownload}>
-          <label htmlFor="roleInput">Job Role</label>
-          <input
-            id="roleInput"
-            type="text"
-            value={role}
-            onChange={(e) => setRole(e.target.value)}
-            placeholder="e.g. Frontend Engineer"
-            required
-          />
-          <button type="submit" disabled={!role.trim() || isDownloading}>
+        <form className="contact-form" onSubmit={handleDownload}>
+          <div className="field">
+            <label htmlFor="roleInput">Job Role</label>
+            <input
+              id="roleInput"
+              type="text"
+              className="input"
+              value={role}
+              onChange={(e) => setRole(e.target.value)}
+              placeholder="e.g. Frontend Engineer"
+              required
+            />
+          </div>
+          <button type="submit" className="btn-submit" disabled={!role.trim() || isDownloading}>
             {isDownloading ? "Generating..." : "Download Resume"}
           </button>
         </form>
-      </section>
-    </main>
+      </main>
+    </>
   );
 }

@@ -14,32 +14,33 @@ export default function Contact() {
   }, []);
 
   return (
-    <main>
+    <>
       <BackButton />
-      <header>
-        <h1>Contact Me</h1>
-        <p>I am open to discussing new projects and opportunities.</p>
-      </header>
+      <main className="container section fade-in" data-od-id="contact-content">
+        <h1>Get in touch</h1>
+        <p className="lead">Available for collaborations and creative projects.</p>
 
-      <section>
-        <article>
-          <h2>GitHub</h2>
-          <p>Check out my latest open source contributions and projects.</p>
-          <a href="https://github.com/ishaansingh" target="_blank" rel="noopener noreferrer">Visit GitHub Profile</a>
-        </article>
+        <div className="social-grid">
+          <a href="https://github.com/Singh-Ishu" target="_blank" rel="noopener noreferrer" className="social-card">
+            <span className="social-label">Github</span>
+            <span className="social-val">@Singh-Ishu</span>
+          </a>
+          <a href="https://in.linkedin.com/in/ishaan-singh-174123293" target="_blank" rel="noopener noreferrer" className="social-card">
+            <span className="social-label">LinkedIn</span>
+            <span className="social-val">in/ishaan-singh-174123293</span>
+          </a>
+          <a href="#" className="social-card">
+            <span className="social-label">Discord</span>
+            <span className="social-val">creative_dev#0000</span>
+          </a>
+          <a href="mailto:itzshaansingh@gmail.com" className="social-card">
+            <span className="social-label">Email</span>
+            <span className="social-val">itzshaan@gmail.com</span>
+          </a>
+        </div>
 
-        <article>
-          <h2>Email</h2>
-          <p>Send me an email to get in touch about opportunities.</p>
-          <a href="mailto:ishaan@example.com">Send Email</a>
-        </article>
 
-        <article>
-          <h2>Phone</h2>
-          <p>Call me for urgent inquiries or direct communication.</p>
-          <a href="tel:+1234567890">Call Me</a>
-        </article>
-      </section>
-    </main>
+      </main>
+    </>
   );
 }
